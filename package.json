@@ -1,0 +1,17 @@
+{
+  "name": "shift-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shift tracking app with calendar, hours/pay analytics, and a MongoDB Atlas backend.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "npm install --silent && npm run dev",
+    "dev": "concurrently -k -n API,WEB -c blue,magenta \"npm run start --workspace backend\" \"npm run dev --workspace frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
