@@ -2,6 +2,7 @@
   "name": "shift-tracker",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Shift tracking app with calendar, hours/pay analytics, and a MongoDB Atlas backend.",
   "workspaces": [
     "backend",
