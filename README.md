@@ -50,10 +50,20 @@ again from the same folder.
   total pay, average hourly rate, and a breakdown by category. Use the arrows
   to move between periods.
 
+## Deploy to Vercel
+
+1. Push this repo to GitHub and import it in [Vercel](https://vercel.com/new).
+2. In **Project Settings → Environment Variables**, add:
+   - `MONGODB_URI` — your MongoDB Atlas connection string (same value as in `backend/.env`).
+3. Deploy. Vercel builds the React app and runs the API as a serverless function at `/api/*`.
+
+In Atlas, allow access from anywhere (`0.0.0.0/0`) under **Network Access**, since Vercel uses dynamic IPs.
+
 ## Project structure
 
 ```
 shift-tracker/
+├── api/         Vercel serverless entry (wraps the Express API)
 ├── backend/     Express + MongoDB API (auto-provisions the DB on boot)
 └── frontend/    React + Tailwind web app
 ```

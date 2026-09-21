@@ -1,30 +1,23 @@
-// Vercel serverless entry point — wraps the Express app as a single function.
-// Connection is cached across warm invocations to avoid reconnecting on every request.
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
 import { connectDB } from "../backend/src/db.js";
-import shiftRoutes from "../backend/src/routes/shifts.js";
-import categoryRoutes from "../backend/src/routes/categories.js";
-import analyticsRoutes from "../backend/src/routes/analytics.js";
+import { createApp } from "../backend/src/app.js";
 
-const app = express();
+let appPromise;
 
-app.use(cors({ origin: "*" }));
-app.use(express.json());
-
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
-app.use("/api/shifts", shiftRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/analytics", analyticsRoutes);
-
-// Cache the DB connection across warm Lambda invocations
-let isConnected = false;
+function getApp() {
+  if (!appPromise) {
+    appPromise = connectDB().then(() => createApp());
+  }
+  return appPromise;
+}
 
 export default async function handler(req, res) {
-  if (!isConnected) {
-    await connectDB();
-    isConnected = true;
+  try {
+    const app = await getApp();
+    return app(req, res);
+  } catch (err) {
+    console.error("[api] handler error:", err);
+    if (!res.headersSent) {
+      res.status(503).json({ error: err.message || "Service unavailable" });
+    }
   }
-  return app(req, res);
 }

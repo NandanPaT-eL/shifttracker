@@ -9,13 +9,14 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export async function connectDB() {
+  if (mongoose.connection.readyState === 1) return;
+
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.error(
-      "\nMissing MONGODB_URI. Copy backend/.env.example to backend/.env and paste your Atlas connection string.\n"
+    throw new Error(
+      "Missing MONGODB_URI. Set it in backend/.env locally or in Vercel project settings for deployment."
     );
-    process.exit(1);
   }
 
   mongoose.set("strictQuery", true);
