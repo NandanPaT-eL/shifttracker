@@ -87,33 +87,65 @@ export default function CalendarView({
   const busiestIdx = weekdayShifts.indexOf(Math.max(...weekdayShifts));
   const categoryCount = new Set(periodShifts.map((s) => s.category)).size;
 
+  const subtitle = `${periodShifts.length} shift${periodShifts.length !== 1 ? "s" : ""} · ${formatHours(totalHours)}`;
+
+  const navButtons = (
+    <div className="flex items-center gap-1 bg-white border border-hairline rounded-xl p-1 shadow-card flex-shrink-0">
+      <button type="button" onClick={onPrev} className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink transition-colors">
+        <IconChevronLeft size={15} />
+      </button>
+      <button type="button" onClick={onNext} className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink transition-colors">
+        <IconChevronRight size={15} />
+      </button>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-4 animate-fade-in">
-      <PageHeader
-        title={titleFor(calView, calDate)}
-        subtitle={`${periodShifts.length} shift${periodShifts.length !== 1 ? "s" : ""} · ${formatHours(totalHours)}`}
-      >
-        <div className="pill-group">
+    <div className="flex flex-col gap-3 md:gap-4 animate-fade-in">
+      {/* Mobile toolbar */}
+      <div className="md:hidden space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-[20px] font-bold text-ink tracking-tight leading-tight truncate">{titleFor(calView, calDate)}</h1>
+            <p className="text-[12px] text-muted mt-0.5">{subtitle}</p>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button type="button" onClick={onToday} className="btn-ghost text-[12px] px-2.5 py-2">Today</button>
+            {navButtons}
+          </div>
+        </div>
+        <div className="flex gap-1 overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-none">
           {FORMATS.map((f) => (
-            <button key={f.id} onClick={() => setCalView(f.id)} className={`pill-btn ${calView === f.id ? "active" : ""}`}>
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setCalView(f.id)}
+              className={`flex-shrink-0 px-3.5 py-2 rounded-full text-[12px] font-semibold transition-colors ${
+                calView === f.id ? "bg-ink text-white" : "bg-white border border-hairline text-muted"
+              }`}
+            >
               {f.label}
             </button>
           ))}
         </div>
-        <button onClick={onToday} className="btn-ghost text-[13px] px-3.5 py-2">Today</button>
-        <div className="flex items-center gap-1 bg-white border border-hairline rounded-xl p-1 shadow-card">
-          <button onClick={onPrev} className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink transition-colors">
-            <IconChevronLeft size={15} />
-          </button>
-          <button onClick={onNext} className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink transition-colors">
-            <IconChevronRight size={15} />
-          </button>
-        </div>
-      </PageHeader>
+      </div>
 
+      <div className="hidden md:block">
+        <PageHeader title={titleFor(calView, calDate)} subtitle={subtitle}>
+          <div className="pill-group">
+            {FORMATS.map((f) => (
+              <button key={f.id} type="button" onClick={() => setCalView(f.id)} className={`pill-btn ${calView === f.id ? "active" : ""}`}>
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={onToday} className="btn-ghost text-[13px] px-3.5 py-2">Today</button>
+          {navButtons}
+        </PageHeader>
+      </div>
 
-      <div className="grid lg:grid-cols-3 gap-4 items-start">
-        <div className="lg:col-span-2 flex flex-col gap-4">
+      <div className="grid lg:grid-cols-3 gap-3 md:gap-4 items-start">
+        <div className="lg:col-span-2 flex flex-col gap-3 md:gap-4 min-w-0">
           {calView === "month" && <MonthGrid calDate={calDate} shiftsByDate={shiftsByDate} categories={categories} onSelectDay={onSelectDay} />}
           {calView === "week" && <WeekView calDate={calDate} shiftsByDate={shiftsByDate} categories={categories} onSelectDay={onSelectDay} />}
           {calView === "day" && <DayAgenda calDate={calDate} shiftsByDate={shiftsByDate} categories={categories} onSelectDay={onSelectDay} />}
@@ -138,7 +170,7 @@ export default function CalendarView({
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="hidden lg:flex flex-col gap-4">
           <StripedProgressCard
             title="Hours by category"
             value={formatHours(totalHours)}

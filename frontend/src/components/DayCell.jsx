@@ -4,7 +4,7 @@ function colorFor(categories, name) {
   return categories.find((c) => c.name === name)?.color || "#3B82F6";
 }
 
-export default function DayCell({ date, inMonth, isToday, shifts, categories, onClick, onSelectDay }) {
+export default function DayCell({ date, inMonth, isToday, shifts, categories, onClick, onSelectDay, compact = false }) {
   const dayNum = date.getUTCDate();
 
   // Separate real shifts from overnight continuations
@@ -15,8 +15,54 @@ export default function DayCell({ date, inMonth, isToday, shifts, categories, on
   const hasOwn = ownShifts.length > 0;
   const hasOvernight = overnightCarryin.length > 0;
 
+  if (compact) {
+    const dotSources = [
+      ...overnightCarryin.map((s) => ({ id: `o-${s._id}`, color: colorFor(categories, s.category), dashed: true })),
+      ...ownShifts.map((s) => ({ id: s._id, color: colorFor(categories, s.category), dashed: false })),
+    ].slice(0, 4);
+    const overflow = ownShifts.length + overnightCarryin.length - dotSources.length;
+
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={`${dayNum}${hasOwn || hasOvernight ? `, ${ownShifts.length + overnightCarryin.length} shifts` : ""}`}
+        className={`relative flex flex-col items-center justify-start gap-0.5 w-full aspect-square max-h-[52px] p-0.5 rounded-lg border transition-colors active:scale-[0.97]
+          ${inMonth
+            ? isToday
+              ? "bg-blue-50 border-blue-400"
+              : "bg-white border-slate-200 active:bg-blue-50/60"
+            : "bg-slate-50/80 border-transparent opacity-45"
+          }`}
+      >
+        <span
+          className={`text-[11px] font-semibold leading-none w-[22px] h-[22px] flex items-center justify-center rounded-full
+            ${isToday ? "bg-blue-500 text-white" : inMonth ? "text-slate-800" : "text-slate-400"}`}
+        >
+          {dayNum}
+        </span>
+        {(dotSources.length > 0 || overflow > 0) && (
+          <div className="flex flex-wrap items-center justify-center gap-[3px] max-w-full px-0.5">
+            {dotSources.map((d) => (
+              <span
+                key={d.id}
+                className="w-[5px] h-[5px] rounded-full flex-shrink-0"
+                style={{
+                  background: d.dashed ? "transparent" : d.color,
+                  boxShadow: d.dashed ? `inset 0 0 0 1.5px ${d.color}` : undefined,
+                }}
+              />
+            ))}
+            {overflow > 0 && <span className="text-[8px] font-semibold text-slate-400 leading-none">+{overflow}</span>}
+          </div>
+        )}
+      </button>
+    );
+  }
+
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`group relative flex flex-col p-2 sm:p-2.5 h-[88px] sm:h-[100px] text-left transition-all duration-150 rounded-xl border
         ${inMonth
