@@ -1,5 +1,6 @@
 import { toKey } from "../../utils/date.js";
 import { IconPlus, IconMapPin } from "../Icons.jsx";
+import { formatHours } from "../../utils/shifts.js";
 
 const START_HOUR = 0;   // Show full 24h so overnight shifts always fit
 const END_HOUR   = 23;
@@ -174,7 +175,7 @@ export default function DayAgenda({ calDate, shiftsByDate, categories, onSelectD
                 )}
                 {s.hours && (
                   <div className="text-[10.5px] mt-0.5" style={{ color, opacity: 0.7 }}>
-                    {s.hours}h total
+                    {formatHours(s.hours)} total
                   </div>
                 )}
               </button>

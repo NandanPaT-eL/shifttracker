@@ -1,3 +1,5 @@
+import { formatHours } from "../utils/shifts.js";
+
 function colorFor(categories, name) {
   return categories.find((c) => c.name === name)?.color || "#3B82F6";
 }
@@ -41,7 +43,7 @@ export default function DayCell({ date, inMonth, isToday, shifts, categories, on
         </span>
         {totalHours > 0 && (
           <span className="text-[9.5px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-            {totalHours}h
+            {formatHours(totalHours)}
           </span>
         )}
       </div>

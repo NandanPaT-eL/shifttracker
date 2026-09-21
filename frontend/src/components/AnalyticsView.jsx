@@ -1,11 +1,12 @@
 import PageHeader from "./PageHeader.jsx";
-import ExploreBar from "./ExploreBar.jsx";
 import FunnelBarCard from "./FunnelBarCard.jsx";
 import StripedProgressCard from "./StripedProgressCard.jsx";
 import StepTrendCard from "./StepTrendCard.jsx";
+import EarningsLineChart from "./EarningsLineChart.jsx";
 import DotHistogramCard from "./DotHistogramCard.jsx";
 import InsightCard from "./InsightCard.jsx";
 import { IconChevronLeft, IconChevronRight, IconClock, IconDollar, IconTrend, IconLayers } from "./Icons.jsx";
+import { formatHours } from "../utils/shifts.js";
 
 const PERIODS = [
   { id: "week", label: "Week" },
@@ -54,10 +55,10 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
   const funnelBars = byCategory.slice(0, 5).map((c) => ({
     label: c.category,
     value: c.hours,
-    display: `${c.hours}h`,
+    display: formatHours(c.hours),
     color: colorOf(c.category),
     calloutParts: [
-      { label: "", strong: `${c.hours}h logged` },
+      { label: "", strong: `${formatHours(c.hours)} logged` },
       { label: "of total", strong: `${totals.hours > 0 ? Math.round((c.hours / totals.hours) * 100) : 0}%` },
       ...(showPay ? [{ label: "earned", strong: `$${c.pay.toFixed(0)}` }] : []),
     ],
@@ -66,11 +67,17 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
   const sideRows = byCategory.map((c) => ({
     label: c.category,
     value: showPay ? c.pay : c.hours,
-    display: showPay ? `$${c.pay.toFixed(0)}` : `${c.hours}h`,
+    display: showPay ? `$${c.pay.toFixed(0)}` : formatHours(c.hours),
     color: colorOf(c.category),
   }));
 
-  const trendData = series.map((s) => ({ label: s.label, value: s.hours, display: `${s.hours}h` }));
+  const trendData = series.map((s) => ({ label: s.label, value: s.hours, display: formatHours(s.hours) }));
+  const earningsData = series.map((s) => ({
+    label: s.label,
+    value: s.pay || 0,
+    display: `$${(s.pay || 0).toFixed(0)}`,
+  }));
+  const showEarnings = showPay || totals.pay > 0 || earningsData.some((d) => d.value > 0);
   const peakBucket = series.reduce((a, b) => (b.hours > a.hours ? b : a), series[0] || { label: "—", hours: 0 });
 
   const topCategory = byCategory[0];
@@ -96,18 +103,8 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
         </div>
       </PageHeader>
 
-      <ExploreBar
-        prompt="What would you like to explore next?"
-        suggestions={[
-          { text: "/this week", onClick: () => setPeriod("week") },
-          { text: "/this month", onClick: () => setPeriod("month") },
-          { text: "/this year", onClick: () => setPeriod("year") },
-          { text: "/jump to now", onClick: onToday },
-        ]}
-      />
-
       <div className={`grid gap-4 ${showPay ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-2"}`}>
-        <KpiCard label="Total Hours" value={`${totals.hours}h`} sub={`${totals.shiftCount} shift${totals.shiftCount !== 1 ? "s" : ""}`} icon={IconClock} iconBg="bg-accent-blue-light" iconColor="text-accent-blue" />
+        <KpiCard label="Total Hours" value={formatHours(totals.hours)} sub={`${totals.shiftCount} shift${totals.shiftCount !== 1 ? "s" : ""}`} icon={IconClock} iconBg="bg-accent-blue-light" iconColor="text-accent-blue" />
         <KpiCard label="Active Categories" value={byCategory.length} sub="job types" icon={IconLayers} iconBg="bg-[#F5F3FF]" iconColor="text-[#8B5CF6]" />
         {showPay && (
           <>
@@ -116,6 +113,14 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
           </>
         )}
       </div>
+
+      {showEarnings && (
+        <EarningsLineChart
+          title="Earnings over time"
+          data={earningsData}
+          color="#16A34A"
+        />
+      )}
 
       <div className="grid lg:grid-cols-3 gap-4 items-stretch">
         <div className="lg:col-span-2">
@@ -127,7 +132,7 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
         </div>
         <StripedProgressCard
           title={showPay ? "Earnings by category" : "Hours by category"}
-          value={showPay ? `$${totals.pay.toFixed(0)}` : `${totals.hours}h`}
+          value={showPay ? `$${totals.pay.toFixed(0)}` : formatHours(totals.hours)}
           rows={sideRows}
         />
       </div>
@@ -138,7 +143,7 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
           title="Shift activity"
           value={peakBucket.label}
           peakLabel="Peak"
-          peakValue={`${peakBucket.hours}h`}
+          peakValue={formatHours(peakBucket.hours)}
           deltaLabel="Total shifts"
           deltaValue={totals.shiftCount}
           data={series.map((s) => ({ label: s.label, value: s.hours }))}
@@ -147,7 +152,7 @@ export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onTod
         <InsightCard
           value={topCategory ? `${Math.round((topCategory.hours / (totals.hours || 1)) * 100)}%` : "—"}
           headline={topCategory ? `Most of your time went to ${topCategory.category}` : "No activity yet this period"}
-          body={topCategory ? `${topCategory.hours}h logged${showPay ? ` · $${topCategory.pay.toFixed(0)} earned` : ""} out of ${totals.hours}h total.` : "Log a shift to see insights here."}
+          body={topCategory ? `${formatHours(topCategory.hours)} logged${showPay ? ` · $${topCategory.pay.toFixed(0)} earned` : ""} out of ${formatHours(totals.hours)} total.` : "Log a shift to see insights here."}
           progress={topCategory ? Math.round((topCategory.hours / (totals.hours || 1)) * 100) : 0}
         />
       </div>

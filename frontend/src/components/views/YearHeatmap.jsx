@@ -1,4 +1,5 @@
 import { MONTHS_SHORT, toKey } from "../../utils/date.js";
+import { formatHours } from "../../utils/shifts.js";
 
 function buildMiniGrid(year, month) {
   const first = new Date(Date.UTC(year, month, 1));
@@ -40,7 +41,9 @@ export default function YearHeatmap({ calDate, shiftsByDate, onSelectMonth, onSe
                 {days.map((d) => {
                   const inMonth = d.getUTCMonth() === month;
                   const key = toKey(d);
-                  const hours = (shiftsByDate.get(key) || []).reduce((s, sh) => s + sh.hours, 0);
+                  const hours = (shiftsByDate.get(key) || [])
+                    .filter((sh) => !sh._overnight)
+                    .reduce((s, sh) => s + sh.hours, 0);
                   return (
                     <button
                       key={key}
@@ -50,7 +53,7 @@ export default function YearHeatmap({ calDate, shiftsByDate, onSelectMonth, onSe
                         background: inMonth ? intensity(hours) : "transparent",
                         outline: key === todayKey ? "1.5px solid #0B0D12" : "none",
                       }}
-                      title={inMonth ? `${key}: ${hours}h` : undefined}
+                      title={inMonth ? `${key}: ${formatHours(hours)}` : undefined}
                     />
                   );
                 })}

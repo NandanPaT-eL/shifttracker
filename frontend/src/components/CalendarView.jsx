@@ -12,6 +12,7 @@ import {
   MONTHS, MONTHS_SHORT, WEEKDAYS_FULL,
   addDays, startOfWeek, toKey,
 } from "../utils/date.js";
+import { uniqueShifts, formatHours } from "../utils/shifts.js";
 
 const FORMATS = [
   { id: "day", label: "Day" },
@@ -55,9 +56,11 @@ export default function CalendarView({
   shiftsByDate, categories, onPrev, onNext, onToday, onSelectDay,
 }) {
   const [fromKey, toKeyStr] = rangeKeysFor(calView, calDate);
-  const periodShifts = [...shiftsByDate.entries()]
-    .filter(([k]) => k >= fromKey && k <= toKeyStr)
-    .flatMap(([, v]) => v);
+  const periodShifts = uniqueShifts(
+    [...shiftsByDate.entries()]
+      .filter(([k]) => k >= fromKey && k <= toKeyStr)
+      .flatMap(([, v]) => v)
+  );
 
   const totalHours = periodShifts.reduce((s, sh) => s + sh.hours, 0);
   const totalPay = periodShifts.reduce((s, sh) => s + (sh.pay?.enabled ? sh.pay.amount || 0 : 0), 0);
@@ -71,7 +74,7 @@ export default function CalendarView({
     .map(([name, hours]) => ({
       label: name,
       value: hours,
-      display: `${hours}h`,
+      display: formatHours(hours),
       color: categories.find((c) => c.name === name)?.color || "#3B6EF6",
     }));
 
@@ -88,7 +91,7 @@ export default function CalendarView({
     <div className="flex flex-col gap-4 animate-fade-in">
       <PageHeader
         title={titleFor(calView, calDate)}
-        subtitle={`${periodShifts.length} shift${periodShifts.length !== 1 ? "s" : ""} · ${totalHours}h`}
+        subtitle={`${periodShifts.length} shift${periodShifts.length !== 1 ? "s" : ""} · ${formatHours(totalHours)}`}
       >
         <div className="pill-group">
           {FORMATS.map((f) => (
@@ -138,7 +141,7 @@ export default function CalendarView({
         <div className="flex flex-col gap-4">
           <StripedProgressCard
             title="Hours by category"
-            value={`${totalHours}h`}
+            value={formatHours(totalHours)}
             rows={catRows}
           />
           <DotHistogramCard
@@ -152,7 +155,7 @@ export default function CalendarView({
             color="#16A34A"
           />
           <InsightCard
-            value={totalHours > 0 ? `${totalHours}h` : "0h"}
+            value={formatHours(totalHours)}
             headline={periodShifts.length > 0 ? `Logged across ${categoryCount} categor${categoryCount === 1 ? "y" : "ies"}` : "No shifts logged yet"}
             body={periodShifts.length > 0 ? "Tap any day to review or edit a shift." : "Log a shift to start tracking your hours."}
             progress={Math.min(100, (totalHours / 40) * 100)}

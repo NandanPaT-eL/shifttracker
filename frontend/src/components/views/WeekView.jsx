@@ -1,5 +1,6 @@
 import { addDays, startOfWeek, toKey, WEEKDAYS } from "../../utils/date.js";
 import { IconPlus } from "../Icons.jsx";
+import { formatHours } from "../../utils/shifts.js";
 
 function colorFor(categories, name) {
   return categories.find((c) => c.name === name)?.color || "#3B6EF6";
@@ -17,7 +18,7 @@ export default function WeekView({ calDate, shiftsByDate, categories, onSelectDa
           const key = toKey(d);
           const isToday = key === todayKey;
           const dayShifts = shiftsByDate.get(key) || [];
-          const totalHours = dayShifts.reduce((s, sh) => s + sh.hours, 0);
+          const totalHours = dayShifts.filter((s) => !s._overnight).reduce((sum, sh) => sum + sh.hours, 0);
 
           return (
             <div key={key} className="flex flex-col min-h-[360px]">
@@ -35,7 +36,7 @@ export default function WeekView({ calDate, shiftsByDate, categories, onSelectDa
                 >
                   {d.getUTCDate()}
                 </span>
-                {totalHours > 0 && <span className="text-[9.5px] text-muted font-medium">{totalHours}h</span>}
+                {totalHours > 0 && <span className="text-[9.5px] text-muted font-medium">{formatHours(totalHours)}</span>}
               </button>
 
               <div className="flex flex-col gap-1.5 flex-1">

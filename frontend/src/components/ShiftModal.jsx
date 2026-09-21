@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IconClose, IconClock, IconMapPin, IconTrash, IconDollar } from "./Icons.jsx";
+import { formatHours } from "../utils/shifts.js";
 
 const emptyForm = (date) => ({
   date,
@@ -120,7 +121,7 @@ export default function ShiftModal({ date, shifts, categories, onClose, onSave, 
                         <div className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-800">
                           <IconClock size={12} className="text-slate-400" />
                           {s.startTime} – {s.endTime}
-                          <span className="text-slate-400 font-normal">· {s.hours}h</span>
+                          <span className="text-slate-400 font-normal">· {formatHours(s.hours)}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: `${color}18`, color }}>

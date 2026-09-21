@@ -78,7 +78,7 @@ export default function App() {
     }
   }, [period, refDate, categories.length]);
 
-  useEffect(() => { if (view === "analytics") loadAnalytics(); }, [view, loadAnalytics]);
+  useEffect(() => { if (view === "analytics") loadAnalytics(); }, [view, loadAnalytics, shifts]);
 
   /* ─── Derived state ─────────────────────────── */
   const shiftsByDate = useMemo(() => {
@@ -106,7 +106,10 @@ export default function App() {
 
 
 
-  const showPay = useMemo(() => shifts.some((s) => s.pay?.enabled), [shifts]);
+  const showPay = useMemo(
+    () => shifts.some((s) => s.pay?.enabled) || (analytics?.totals?.pay > 0),
+    [shifts, analytics]
+  );
 
   /* ─── Calendar navigation ───────────────────── */
   const handlePrev = () => {
@@ -160,11 +163,13 @@ export default function App() {
     if (form._id) await api.updateShift(form._id, payload);
     else await api.createShift(payload);
     await loadCalendarData();
+    if (view === "analytics") await loadAnalytics();
   };
 
   const handleDeleteShift = async (id) => {
     await api.deleteShift(id);
     await loadCalendarData();
+    if (view === "analytics") await loadAnalytics();
   };
 
   const handleCreateCategory = async (name) => {
@@ -177,18 +182,17 @@ export default function App() {
 
   /* ─── Render ────────────────────────────────── */
   return (
-    <div className="min-h-screen flex flex-col bg-surface">
+    <div className="min-h-screen flex flex-col app-bg">
       <TopNav view={view} setView={setView} onAddShift={handleAddShiftFromNav} />
 
       {/* Mobile header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-4 bg-white border-b border-hairline sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-blue to-accent-blue-dark flex items-center justify-center">
-            <IconCalendar size={13} className="text-white" />
-          </div>
-          <span className="text-[15px] font-bold text-ink">shifttrack</span>
+      <header className="md:hidden sticky top-0 z-20 px-4 pt-3 pb-2">
+        <div className="glass-nav flex items-center justify-between h-12 px-4">
+          <h1 className="text-[15px] font-semibold text-ink tracking-tight">
+            Welcome, <span className="font-bold">Nandan</span>
+          </h1>
+          {loading && <div className="w-4 h-4 border-2 border-accent-blue border-t-transparent rounded-full animate-spin" />}
         </div>
-        {loading && <div className="w-4 h-4 border-2 border-accent-blue border-t-transparent rounded-full animate-spin" />}
       </header>
 
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -233,7 +237,7 @@ export default function App() {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-hairline flex items-center justify-around px-4 py-2 z-40 shadow-[0_-1px_12px_rgba(0,0,0,0.06)]">
+      <nav className="glass-bottom-nav md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around px-4 py-2.5 z-40 mx-3 mb-3 rounded-2xl">
         {[
           { id: "calendar",  label: "Calendar",  Icon: IconCalendar },
           { id: "analytics", label: "Analytics", Icon: IconChart },
@@ -254,7 +258,7 @@ export default function App() {
           onClick={handleAddShiftFromNav}
           className="flex flex-col items-center gap-0.5"
         >
-          <div className="w-11 h-11 rounded-2xl bg-ink flex items-center justify-center shadow-btn-primary -mt-5">
+          <div className="w-11 h-11 rounded-2xl glass-btn-primary flex items-center justify-center -mt-5">
             <IconPlus size={20} className="text-white" />
           </div>
           <span className="text-[11px] font-medium text-subtle mt-0.5">Add</span>
