@@ -5,8 +5,17 @@ const H = 190;
 const PAD_TOP = 34;
 
 export default function StepTrendCard({ title, calloutLabel, data, color = "#EC4899" }) {
+  if (!data.length) {
+    return (
+      <div className="card p-5 flex items-center justify-center text-[13px] text-muted min-h-[220px]">
+        No data for this period.
+      </div>
+    );
+  }
+
   const values = data.map((d) => d.value);
-  const max = Math.max(1, ...values);
+  const dataMax = Math.max(...values);
+  const max = Math.max(1, dataMax); // scale floor so zero-only weeks still render
   const min = Math.min(0, ...values);
   const range = max - min || 1;
   const n = data.length;
@@ -18,7 +27,7 @@ export default function StepTrendCard({ title, calloutLabel, data, color = "#EC4
     ...d,
   }));
 
-  const peakIdx = values.indexOf(max);
+  const peakIdx = dataMax > 0 ? values.indexOf(dataMax) : 0;
   const peak = points[peakIdx];
 
   // Build a step-after path: hold value until the next x, then jump.
