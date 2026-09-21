@@ -4,11 +4,14 @@
   "buildCommand": "npm run build --workspace frontend",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/index.js": {
+      "maxDuration": 10
+    },
+    "api/[[...slug]].js": {
       "maxDuration": 10
     }
   }

@@ -53,9 +53,12 @@ again from the same folder.
 ## Deploy to Vercel
 
 1. Push this repo to GitHub and import it in [Vercel](https://vercel.com/new).
-2. In **Project Settings → Environment Variables**, add:
+2. In **Project Settings → General**, set:
+   - **Framework Preset** → **Other**
+   - **Root Directory** → leave **blank** (repo root). Do **not** set this to `frontend`, or the API will not deploy and Analytics will hang.
+3. In **Project Settings → Environment Variables**, add:
    - `MONGODB_URI` — your MongoDB Atlas connection string (same value as in `backend/.env`).
-3. Deploy. Vercel builds the React app and runs the API as a serverless function at `/api/*`.
+4. Deploy. Vercel builds the React app and runs the API as a serverless function at `/api/*`.
 
 In Atlas, allow access from anywhere (`0.0.0.0/0`) under **Network Access**, since Vercel uses dynamic IPs.
 
@@ -75,5 +78,9 @@ shift-tracker/
 - **Connection errors** — in Atlas, make sure your current IP address is
   allow-listed under **Network Access** (or allow access from anywhere while
   testing), and double-check the password in your connection string.
+- **`mongodb+srv URI cannot have port number`** — your connection string has
+  `:27017` (or another port) in it. Remove the port. It should look like:
+  `mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/shift_tracker?retryWrites=true&w=majority`
+  Also remove the separate `PORT` env var from Vercel — that is only for local dev.
 - **Port already in use** — something else is using port 5050 or 5173; close
   it, or edit `PORT` in `backend/.env` / the `dev` script in `frontend/package.json`.

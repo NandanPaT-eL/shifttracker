@@ -22,6 +22,8 @@ export default function App() {
   const [period, setPeriod]     = useState("week");
   const [refDate, setRefDate]   = useState(new Date());
   const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
 
   /* ─── Calendar data ─────────────────────────── */
   const loadCalendarData = useCallback(async () => {
@@ -60,6 +62,8 @@ export default function App() {
 
   /* ─── Analytics data ────────────────────────── */
   const loadAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
     try {
       const data = await api.getAnalytics(period, toKey(refDate));
       setAnalytics(data);
@@ -67,9 +71,12 @@ export default function App() {
         setCategories(await api.getCategories());
       }
     } catch (e) {
-      setError(e.message);
+      setAnalytics(null);
+      setAnalyticsError(e.message);
+    } finally {
+      setAnalyticsLoading(false);
     }
-  }, [period, refDate]);
+  }, [period, refDate, categories.length]);
 
   useEffect(() => { if (view === "analytics") loadAnalytics(); }, [view, loadAnalytics]);
 
@@ -216,6 +223,8 @@ export default function App() {
               onToday={() => setRefDate(new Date())}
               rangeLabel={rangeLabel}
               data={analytics}
+              loading={analyticsLoading}
+              error={analyticsError}
               categories={categories}
               showPay={showPay}
             />

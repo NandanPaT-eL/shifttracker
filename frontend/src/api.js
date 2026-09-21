@@ -5,11 +5,19 @@ async function request(path, options = {}) {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "API is unavailable (got HTML instead of JSON). In Vercel, set Root Directory to the repo root — leave it blank, not frontend."
+    );
+  }
+
+  const body = await res.json();
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `Request failed: ${res.status}`);
   }
-  return res.json();
+  return body;
 }
 
 export const api = {

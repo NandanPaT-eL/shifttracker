@@ -8,17 +8,29 @@ const DEFAULT_CATEGORIES = [
   { name: "Volunteer", color: "#F59E0B" },
 ];
 
+function normalizeMongoUri(uri) {
+  const trimmed = uri.trim();
+
+  // Atlas SRV strings must not include a port (a common copy/paste mistake).
+  if (trimmed.startsWith("mongodb+srv://")) {
+    return trimmed.replace(/^(mongodb\+srv:\/\/(?:[^@]+@)?[^:/]+):\d+(?=\/|\?|$)/, "$1");
+  }
+
+  return trimmed;
+}
+
 export async function connectDB() {
   if (mongoose.connection.readyState === 1) return;
 
-  const uri = process.env.MONGODB_URI;
+  const rawUri = process.env.MONGODB_URI;
 
-  if (!uri) {
+  if (!rawUri) {
     throw new Error(
       "Missing MONGODB_URI. Set it in backend/.env locally or in Vercel project settings for deployment."
     );
   }
 
+  const uri = normalizeMongoUri(rawUri);
   mongoose.set("strictQuery", true);
 
   await mongoose.connect(uri, { dbName: uri.includes("/shift_tracker") ? undefined : "shift_tracker" });

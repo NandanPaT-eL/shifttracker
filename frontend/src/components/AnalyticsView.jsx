@@ -28,8 +28,18 @@ function KpiCard({ label, value, sub, icon: Icon, iconBg, iconColor }) {
   );
 }
 
-export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onToday, rangeLabel, data, categories, showPay }) {
-  if (!data) {
+export default function AnalyticsView({ period, setPeriod, onPrev, onNext, onToday, rangeLabel, data, loading, error, categories, showPay }) {
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 px-6 text-center animate-fade-in">
+        <div className="max-w-md rounded-xl border border-red-100 bg-red-50 text-red-600 text-[13px] px-4 py-3">
+          ⚠ {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (loading || !data) {
     return (
       <div className="flex items-center justify-center h-64 text-muted text-sm animate-fade-in">
         Loading analytics…
